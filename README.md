@@ -9,7 +9,7 @@ This project is a canister implementation for the Internet Computer Protocol (IC
 
 The canister is designed with a multi-role system to facilitate various operations and interactions within the ebusiness center ecosystem. Below are the roles defined within the system and the functionalities assigned to each.
 
-#### Usergit
+#### UserRegisterBusiness
 
 - **Register a business**: user can register his or her business on ebusiness platform and add items,price their location among others details.The system can allow to the seller to take down the product he/she is currently selling.Once the buyer buys seller product the system will credit sellers account
 
