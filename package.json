@@ -3,8 +3,8 @@
     "version": "0.0.1",
     "description": "E-Business canister built on the Internet Computer Protocol",
     "author": "Samuel Gichuki",
-    "homepage": "https://github.com/7144samuelG/ebusiness_center#readme",
-    "bugs": "https://github.com/7144samuelG/ebusiness_center/issues",
+    "homepage": "https://github.com/7144samuelG/icp-ebusiness_center#readme",
+    "bugs": "https://github.com/7144samuelG/icp-ebusiness_center/issues",
     "license": "MIT",
     "private": false,
     "scripts": {
