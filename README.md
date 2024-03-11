@@ -4,20 +4,20 @@ This repository is a submission for the [TypeScript Smart Contract 101](https://
 
 ## Overview
 
-This project is a canister implementation for the Internet Computer Protocol (ICP), designed to facilitate ebusiness. It allows users to list their business and items their are actually selling and buyers can buy those items and also give feedbacks about the product they have acually bought.
+This project is a canister implementation for the Internet Computer Protocol (ICP), designed to facilitate ebusiness. It allows users to list their business and items their are actually selling and buyers can buy those items and also give feedbacks about the product they have actually bought.
 ### Roles and functionalities
 
 The canister is designed with a multi-role system to facilitate various operations and interactions within the ebusiness center ecosystem. Below are the roles defined within the system and the functionalities assigned to each.
 
-#### User
+#### Usergit
 
-- **Register a business**: user can register his or her business on ebusiness platform and add items,price their location among others details.The system can allow to the seller to take down the product he is currently selling.Once the buyer buys seller product the system will credit sellers acoount
+- **Register a business**: user can register his or her business on ebusiness platform and add items,price their location among others details.The system can allow to the seller to take down the product he/she is currently selling.Once the buyer buys seller product the system will credit sellers account
 
 
 #### Buyer
 
-- **Buyer**: Buyer can login on ebusiness and search for a certain item using item id and the system will check if buyer has enougjh tokens to proceed with transactions if has enough tokens buyer can purchase the product and product get labelled as sold.Also buyer can give comments about the product he/she has bought nad also rate the product.
-THe system prevent seller from actually rating his product and alo commenting or buying the product he has actually listed.
+- **Buyer**: Buyer can login on ebusiness and search for a certain item using item id and the system will check if buyer has enougjh tokens to proceed with transactions if has enough tokens buyer can purchase the product and product get labelled as sold.Also buyer can give comments about the product he/she has bought and also rate the product.
+THe system prevent seller from actually rating his product and also commenting or buying the product he/she has actually listed.
 
 ## Getting started
 
@@ -33,13 +33,13 @@ Follow the steps below to set up and run the project locally.
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/7144samuelG/icp-ebusiness-center
+git clone https://github.com/7144samuelG/icp_ebusiness_center
 ```
 
 2. Navigate to the project directory:
 
 ```bash
-cd icp-ebusiness-center
+cd icp_ebusiness_center
 ```
 
 3. `dfx` is the tool you will use to interact with the IC locally and on mainnet. If you don't already have it installed:
