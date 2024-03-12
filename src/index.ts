@@ -1,225 +1,170 @@
-import {
-  Canister,
-  Record,
-  text,
-  nat8,
-  nat16,
-  nat64,
-  Principal,
-  Opt,
-  None,
-  Some,
-  Variant,
-  StableBTreeMap,
-  update,
-  query,
-  Result,
-  ic,
-  Vec,
-  init,
-  Err,
-} from "azle";
-import { v4 as uuidv4 } from "uuid";
 /**
- * This represents the business the user is opening
+ * Represents a business owned by a user.
  */
-const ownerOfBusiness=Record({
-  name:text,
-  productsSelling:text,
-  labelofProduct:text,
-  price:nat64,
-  ownedby:text,
-  location:text,
-  country:text,
-  continent:text,
-  zipcode:text,
-  description:text,
-  listedAt:nat64,
-  updatedAt:Opt(nat64)
+const OwnerOfBusiness = Record({
+  name: text,
+  productsSelling: text,
+  labelOfProduct: text,
+  price: nat64,
+  ownedBy: text,
+  location: text,
+  country: text,
+  continent: text,
+  zipcode: text,
+  description: text,
+  listedAt: nat64,
+  updatedAt: Opt(nat64),
 });
-/**
- * thsi type represent business listing
- */
-const businessListing=Record({
-  id:text,
-  business:ownerOfBusiness,
-  listedBy:Principal,
-  listedAt:nat64,
-  updatedAt:Opt(nat64)
-})
-type businessListing=typeof businessListing.tsType;
-/**
- * this represents the user business payload
- */
-const BusinessPayload=Record({
-  name:text,
-  location:text,
-  zipcode:text,
-  continent:text,
-  country:text,
-  labelofProduct:text,
-  price:nat64,
-  itemName:text,
-  description:text
-})
-     
-/**
- * comment by the user about the product he or she bought from the buyer
- */
-const commentbyBuyer=Record({
-  sellerId:Principal,
-  itemId:text,
-  comment:text,
-  rate:nat64,
-  listedAt:nat64,
-})
-/**
- * comment listing
- */
-const commentListing=Record({
-  id:text,
-  comment:commentbyBuyer,
-  listedBy:Principal,
-  timeListed:nat64
-})
-/**
- * comments payload
- */
-const commentsPayload=Record({
-  sellerdId:Principal,
-  itemId:text,
-  comment:text,
-  rate:nat64
-})
-type commentListing=typeof commentListing.tsType;
-/**
- * this type represents different errors
- */
-const Error=Variant({
-  NotFound:text,
-  BadRequest:text,
-  Forbidden:text
-})
 
-//storage variables
-const businessListingS=StableBTreeMap<text,businessListing>(0);
-const accounts=StableBTreeMap<Principal,nat64>(0);
-const soldItem=StableBTreeMap<text,Principal>(0);
-const commentsOnItems=StableBTreeMap<text,commentListing>(0);
+/**
+ * Represents a business listing.
+ */
+const BusinessListing = Record({
+  id: text,
+  business: OwnerOfBusiness,
+  listedBy: Principal,
+  listedAt: nat64,
+  updatedAt: Opt(nat64),
+});
+type BusinessListing = typeof BusinessListing.tsType;
+
+/**
+ * Represents the payload for creating a business.
+ */
+const BusinessPayload = Record({
+  name: text,
+  location: text,
+  zipcode: text,
+  continent: text,
+  country: text,
+  labelOfProduct: text,
+  price: nat64,
+  itemName: text,
+  description: text,
+});
+
+/**
+ * Represents a comment made by a buyer about a product.
+ */
+const CommentByBuyer = Record({
+  sellerId: Principal,
+  itemId: text,
+  comment: text,
+  rate: nat64,
+  listedAt: nat64,
+});
+
+/**
+ * Represents a comment listing.
+ */
+const CommentListing = Record({
+  id: text,
+  comment: CommentByBuyer,
+  listedBy: Principal,
+  timeListed: nat64,
+});
+type CommentListing = typeof CommentListing.tsType;
+
+/**
+ * Represents different error types.
+ */
+const Error = Variant({
+  NotFound: text,
+  BadRequest: text,
+  Forbidden: text,
+});
+
+/**
+ * Storage variables.
+ */
+const businessListings = StableBTreeMap<text, BusinessListing>(0);
+const accounts = StableBTreeMap<Principal, nat64>(0);
+const soldItems = StableBTreeMap<text, Principal>(0);
+const commentsOnItems = StableBTreeMap<text, CommentListing>(0);
+
 export default Canister({
   /**
-   * initialize the canister and get register the user
-   * intialize accounts
+   * Create a business with the given payload.
+   * @param {BusinessPayload} payload - Payload for creating a business.
+   * @returns {Result<BusinessListing, Error>} - Result of the operation.
    */
+  createBusiness: update([BusinessPayload], Result(BusinessListing, Error), (payload) => {
+    // Check if there are missing values
+    const missingFields = [];
+    if (!payload.name) missingFields.push("business name");
+    if (!payload.continent) missingFields.push("continent");
+    // Add checks for other required fields here...
 
-  /**
-   * @param payload Payload for listing business
-   * @returns creates user business or error
-   */
-  createBusiness:update([BusinessPayload],Result(businessListing,Error),(payload)=>{
-    //check if there are missing values
-    if(!payload.name){
-      return Result.Err({BadRequest:"name of busines is missing"});
+    if (missingFields.length > 0) {
+      return Result.Err({ BadRequest: `Missing required fields: ${missingFields.join(", ")}` });
     }
-    if(!payload.continent){
-      return Result.Err({BadRequest:"continent where business id located is missing"});
-    }
-    if(!payload.country){
-      return Result.Err({BadRequest:"country where business id located is missing"});
-    }
-    if(!payload.location){
-      return Result.Err({BadRequest:"location where business id located is missing"});
-    }
-    if(!payload.zipcode){
-      return Result.Err({BadRequest:"zipcode where business id located is missing"});
-    }
-    if(!payload.labelofProduct){
-      return Result.Err({BadRequest:"label of product is missing"});
-    }
-    if(!payload.description){
-      return Result.Err({BadRequest:"description of product is missing"});
-    }
-    if(!payload.itemName){
-      return Result.Err({BadRequest:"item name of product is missing"});
-    }
-    if(!payload.price){
-      return Result.Err({BadRequest:"price of product is missing"});
-    }
-    //generate business listing
-    const id=uuidv4();
-    const businessListing:businessListing={
-      id:id,
-      business:{
-        name:payload.name,
-        productsSelling:payload.itemName,
-        labelofProduct:payload.labelofProduct,
-        price:payload.price,
-        ownedby:payload.name,
-        location:payload.location,
-        country:payload.country,
-        continent:payload.continent,
-        zipcode:payload.zipcode,
-        description:payload.description,
-        listedAt:ic.time(),
-        updatedAt:None
+
+    // Generate business listing
+    const id = uuidv4();
+    const newBusinessListing: BusinessListing = {
+      id,
+      business: {
+        name: payload.name,
+        productsSelling: payload.itemName,
+        labelOfProduct: payload.labelOfProduct,
+        price: payload.price,
+        ownedBy: payload.name,
+        location: payload.location,
+        country: payload.country,
+        continent: payload.continent,
+        zipcode: payload.zipcode,
+        description: payload.description,
+        listedAt: ic.time(),
+        updatedAt: None,
       },
-      listedBy:ic.caller(),
-      listedAt:ic.time(),
-      updatedAt:None,
+      listedBy: ic.caller(),
+      listedAt: ic.time(),
+      updatedAt: None,
     };
-    businessListingS.insert(businessListing.id,businessListing);
-    return Result.Ok(businessListing);
-  }),
-  /**
-   * list all available business and their full details
-   * @returns list of all available business
-   */
-  getAllBusiness:query([],Vec(businessListing),()=>{
-    return businessListingS.values()!;
-  }),
-  /**
-   * search specific business
-   * @returns specific business
-   * @params pass business id
-   */
-  getSpecificBusiness:query([text],Result(businessListing,Error),(name)=>{
-    if(!name){
-      return Result.Err({BadRequest:"name of business is missing"});
-    }
-    const getItem=businessListingS.get(name);
-    if(getItem.None){
-      return Result.Err({BadRequest:"no business with that id if found"});
-    }
-    return Result.Ok(businessListingS.get(name).Some!);
-  }),
-  /**
-   * allow seller to delete a product
-   * @params pass id of an item you want to delete
-   * @returns error if any and deleted item
-   */
-  sellerDeleteProduct:update([text],Result(businessListing,Error),(itemId)=>{
-    //verify if its seller
-    //locate an item
-   // const itemOption = businessListingS.get(itemId);
-    // if (itemOption.len<=0) {
-    //    return Result.Err({ NotFound: "Item with that ID is not found" });
-    // }
-    if(!itemId){
-      return Result.Err({BadRequest:"item id is missing"});
-    }
-    //make sure that its only owner can delete the item 
-  
-   const removeItem=businessListingS.get(itemId).Some!;
-   if(!removeItem){
-    return Result.Err({BadRequest:"item id not found"});
-   }
-   if(removeItem.listedBy.toText()!=ic.caller().toText()){
-     return Result.Err({Forbidden:"only seller can delete the product"}) 
-  }
-    businessListingS.remove(itemId);
-    return Result.Ok(removeItem)
+    businessListings.insert(id, newBusinessListing);
+    return Result.Ok(newBusinessListing);
   }),
 
+  /**
+   * List all available businesses.
+   * @returns {Vec<BusinessListing>} - List of all available businesses.
+   */
+  getAllBusiness: query([], Vec(BusinessListing), () => {
+    return businessListings.values()!;
+  }),
+
+  /**
+   * Get a specific business by ID.
+   * @param {text} id - Business ID.
+   * @returns {Result<BusinessListing, Error>} - Result of the operation.
+   */
+  getSpecificBusiness: query([text], Result(BusinessListing, Error), (id) => {
+    const business = businessListings.get(id);
+    if (business.isNone()) {
+      return Result.Err({ NotFound: "No business with that ID was found." });
+    }
+    return Result.Ok(business.unwrap());
+  }),
+
+  /**
+   * Allow a seller to delete their product.
+   * @param {text} itemId - ID of the item to be deleted.
+   * @returns {Result<BusinessListing, Error>} - Result of the operation.
+   */
+  sellerDeleteProduct: update([text], Result(BusinessListing, Error), (itemId) => {
+    const business = businessListings.get(itemId);
+    if (business.isNone()) {
+      return Result.Err({ NotFound: "Item with that ID is not found." });
+    }
+
+    const listing = business.unwrap();
+    if (listing.listedBy.toText() !== ic.caller().toText()) {
+      return Result.Err({ Forbidden: "Only the seller can delete the product." });
+    }
+
+    businessListings.remove(itemId);
+    return Result.Ok(listing);
+  }),
 
   /**
    * this is where the buyer can buy a product of interest
